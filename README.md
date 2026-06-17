@@ -1,7 +1,7 @@
-# Гордей & Елизавета — свадебное приглашение
+# Свадебное приглашение
 
 Single-page wedding-invitation mini-site, implemented in **Vue 3 + TypeScript + Vite**
-from the *Гордей & Елизавета — Wedding Design System* handoff (Claude Design).
+from the *Wedding Design System* handoff (Claude Design).
 
 The wedding: **19 сентября 2026**, Paradise Halls, Санкт-Петербург.
 
