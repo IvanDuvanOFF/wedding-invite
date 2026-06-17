@@ -8,4 +8,6 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig({
   base: process.env.BASE_PATH || "/",
   plugins: [vue()],
+  // Keep the dev port in sync with `.claude/launch.json` and the Preview tools.
+  server: { port: 5176, strictPort: true },
 });

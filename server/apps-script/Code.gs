@@ -52,23 +52,44 @@ function notifyTelegram(data) {
   var chat = props.getProperty("TELEGRAM_CHAT");
   if (!token || !chat) return; // not configured — skip silently
 
+  // The client sends coming as "Придёт" / "Не придёт".
+  var isComing = String(data.coming || "").indexOf("Не") !== 0;
+  var name = (data.name || "—").trim();
+
   var lines = [
-    "Новый ответ на приглашение",
-    "Имя: " + (data.name || "—"),
-    "Ответ: " + (data.coming || "—"),
+    "💌 <b>Новый ответ!</b>",
+    "",
+    "от <b>" + esc(name) + "</b>",
+    (isComing ? "🥳" : "😔") + " " + esc(data.coming || "—"),
   ];
-  if (data.where) lines.push("Куда: " + data.where);
+
+  var details = [];
+  if (data.where) details.push("📍 Куда: " + esc(data.where));
   if (data.companions && data.companions.length) {
-    lines.push("Спутники: " + data.companions.join(", "));
+    details.push("👥 Спутники: " + esc(data.companions.join(", ")));
   }
-  if (data.drinks) lines.push("Напитки: " + data.drinks);
+  if (data.drinks) details.push("🍷 Напитки: " + esc(data.drinks));
+  if (details.length) {
+    lines.push("");
+    lines = lines.concat(details);
+  }
 
   UrlFetchApp.fetch("https://api.telegram.org/bot" + token + "/sendMessage", {
     method: "post",
     contentType: "application/json",
     muteHttpExceptions: true,
-    payload: JSON.stringify({ chat_id: chat, text: lines.join("\n") }),
+    payload: JSON.stringify({
+      chat_id: chat,
+      text: lines.join("\n"),
+      parse_mode: "HTML",
+      disable_web_page_preview: true,
+    }),
   });
+}
+
+// Escape user-supplied text for Telegram's HTML parse mode.
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function jsonOutput(obj) {

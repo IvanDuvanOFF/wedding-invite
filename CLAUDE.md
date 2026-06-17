@@ -17,7 +17,8 @@ the prototype's internal structure.
 
 ```bash
 npm install      # deps
-npm run dev      # Vite dev server (port 5176 via .claude/launch.json)
+npm run dev      # Vite dev server on port 5176 (vite.config.ts server.port,
+                 #   strictPort; matches .claude/launch.json + Preview tools)
 npm run build    # vue-tsc type-check + production build  ← run before finishing
 npm run preview  # serve the production build
 npm run typecheck
@@ -45,8 +46,13 @@ for type-only imports.
   (`BottomBar`, `PolaroidPhoto`, `CountdownUnit` exist as library components but
   the page currently inlines those patterns; keep them valid — `vue-tsc -b`
   type-checks all `.vue` files.)
-- `public/photos/` — couple reference photos, `restaurant-logo.jpg`,
-  `color-palette.jpg`.
+- `public/photos/` — `child-photo.png` (hero: the couple as kids dressed as
+  bride/groom — **square**, drives the 1:1 hero frame), `polaroid-photo.jpg`
+  (closing section, 4/5 frame), `restaurant-logo.jpg`, `color-palette.jpg`.
+  Wire each in base-aware via the `heroPhotoUrl` / `polaroidPhotoUrl` / `logoUrl`
+  consts in App.vue. The hero's «жених/невеста» annotation labels are ordered
+  bride-left / groom-right to match `child-photo.png`; keep them in sync if the
+  photo changes.
 
 ## Design language (do not drift)
 
@@ -73,6 +79,11 @@ for type-only imports.
   right-arrow connector → calendar on desktop.
 - Palette swatches: 2×4 on mobile (smaller dots), 4×2 on desktop; hex revealed
   on hover/active.
+- "Where" map: the OSM embed's bottom attribution bar (cramped on mobile) is
+  **intentionally clipped** — the iframe is `calc(100% + 48px)` tall inside a
+  fixed-height `overflow: hidden` frame. The required credit is preserved as the
+  `.map-credit` caption below it, so don't "fix" the clip by shrinking the
+  iframe.
 
 ## RSVP form (state in App.vue)
 
@@ -81,9 +92,21 @@ for type-only imports.
 `honeypot` spam trap. Extra fields show only when `coming === 'yes'`. Schedule
 rows are clickable → scroll to form + pre-select venue.
 
+The Confirm button is **always tappable** (disabled only while `sending` or
+after the deadline) — its label is the `(･_･?)` kaomoji until a choice is made.
+Submitting with a missing name/attendance sets `attempted` and surfaces an
+inline hint «плашка» (`formHint`) instead of silently no-opping. Submissions
+**close after end of 15 July 2026** (`deadlinePassed`): the button disables, a
+notice shows, and the deadline date is underlined in the subtitle
+(`.deadline-date`). On success the «Спасибо» card shows a CSS fireworks burst
+**only when the guest is coming** (`coming === 'yes'`, opts out under
+`prefers-reduced-motion`); a "no" answer shows a warmer «передумаете» message.
+
 `submit()` POSTs the payload to a **Google Apps Script web app** at
 `import.meta.env.VITE_RSVP_ENDPOINT` (server source + setup in
-`server/apps-script/`). It's a `no-cors` request (Apps Script sends no CORS
+`server/apps-script/`). The server appends a Sheet row and sends an
+HTML-formatted Telegram message (`parse_mode: HTML`, fields escaped via `esc()`,
+mood emoji by attendance) — `notifyTelegram` in `Code.gs`. It's a `no-cors` request (Apps Script sends no CORS
 headers), so the response is opaque — success is optimistic, only network
 errors flip `failed`. States: `sending` / `sent` / `failed`. **If
 `VITE_RSVP_ENDPOINT` is unset (e.g. local dev), it falls back to the old

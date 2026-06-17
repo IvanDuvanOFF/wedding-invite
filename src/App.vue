@@ -16,15 +16,17 @@ type GarlandCard = { ch: string; x: number; rot: number; top: number; holeY: num
 
 const garland: GarlandCard[] = (() => {
   const chars = ["У", "Н", "А", "С", "С", "В", "А", "Д", "Ь", "Б", "А"];
-  const xs = [5, 13, 21, 29, 44, 52, 60, 68, 76, 84, 92];
+  //          У │  Н   А   С  │  С   В   А   Д   Ь   Б   А
+  // intra-word step 7, word gap 14 — a real space after "У" and after "НАС".
+  const xs = [8, 22, 29, 36, 50, 57, 64, 71, 78, 85, 92];
   const rots = [-5, 4, -3, 5, -4, 3, -5, 4, -3, 5, -4];
   const A = 15;
   const baseTop = 12;
   const holeFromTop = 9;
-  const cx = 48.5;
+  const cx = 50; // apex of the rope sag, centred on the new layout
   return chars.map((ch, i) => {
     const x = xs[i];
-    const sag = Math.max(0, A * (1 - Math.pow((x - cx) / 44, 2)));
+    const sag = Math.max(0, A * (1 - Math.pow((x - cx) / 42, 2)));
     const top = baseTop + sag;
     return { ch, x, rot: rots[i], top, holeY: top + holeFromTop };
   });
@@ -45,7 +47,7 @@ const ropePath = (() => {
 ---------------------------------------------------------------------------- */
 type Where = "" | "zags" | "banquet" | "both";
 const schedule: { time: string; text: string; where: Exclude<Where, "" | "both"> }[] = [
-  { time: "14:30", text: "Торжественная церемония в ЗАГСе", where: "zags" },
+  { time: "14:30", text: "Торжественная церемония в ЗАГСе Ленинского района", where: "zags" },
   { time: "15:30", text: "Сбор гостей в Paradise Halls", where: "banquet" },
   { time: "16:00", text: "Банкет", where: "banquet" },
   { time: "22:00", text: "Завершение вечера", where: "banquet" },
@@ -127,6 +129,18 @@ const honeypot = ref(""); // spam trap — real guests never see/fill this
 const sent = ref(false);
 const sending = ref(false);
 const failed = ref(false);
+const attempted = ref(false); // a submit was tried — enables inline validation hints
+
+/** Inline "плашка" shown when the guest taps Confirm before filling the form. */
+const formHint = computed(() => {
+  if (!attempted.value) return "";
+  const noName = !name.value.trim();
+  const noChoice = !coming.value;
+  if (noName && noChoice) return "Укажите имя и выберите: придёте или нет.";
+  if (noChoice) return "Пожалуйста, выберите: придёте или нет.";
+  if (noName) return "Пожалуйста, укажите своё имя.";
+  return "";
+});
 
 /** Deployed Google Apps Script web-app URL; unset → local-only (dev) behaviour. */
 const RSVP_ENDPOINT = import.meta.env.VITE_RSVP_ENDPOINT;
@@ -164,7 +178,8 @@ function removeCompanion(i: number) {
 async function submit() {
   if (sending.value) return;
   if (deadlinePassed) return; // submissions closed
-  if (!name.value.trim() || !coming.value) return; // name + attendance required
+  attempted.value = true;
+  if (!name.value.trim() || !coming.value) return; // show inline hint instead
   failed.value = false;
 
   // honeypot filled → silently accept, send nothing (it's a bot)
@@ -300,6 +315,8 @@ const hoverCta = ref(false);
 ---------------------------------------------------------------------------- */
 /** Public asset URL, base-path aware so it works under GitHub Pages subpaths. */
 const logoUrl = `${import.meta.env.BASE_URL}photos/restaurant-logo.jpg`;
+const heroPhotoUrl = `${import.meta.env.BASE_URL}photos/child-photo.png`;
+const polaroidPhotoUrl = `${import.meta.env.BASE_URL}photos/polaroid-photo.jpg`;
 
 const sectionTitleStyle: CSSProperties = {
   fontFamily: "var(--font-display)",
@@ -414,7 +431,7 @@ const sectionTitleStyle: CSSProperties = {
             zIndex: 3,
           }"
         >
-          <AnnotationLabel direction="down-left">жених</AnnotationLabel>
+          <AnnotationLabel direction="down-left">невеста</AnnotationLabel>
         </div>
         <div
           :style="{
@@ -425,7 +442,7 @@ const sectionTitleStyle: CSSProperties = {
             zIndex: 3,
           }"
         >
-          <AnnotationLabel direction="down-right">невеста</AnnotationLabel>
+          <AnnotationLabel direction="down-right">жених</AnnotationLabel>
         </div>
         <div
           :style="{
@@ -443,27 +460,25 @@ const sectionTitleStyle: CSSProperties = {
           :style="{
             marginTop: 'clamp(10px,3vw,20px)',
             width: '100%',
-            aspectRatio: '16 / 11',
-            maxHeight: '460px',
+            aspectRatio: '1 / 1',
             background: 'var(--surface-sunken)',
-            border: '2px dashed var(--accent)',
+            border: '2px solid var(--accent)',
             borderRadius: '10px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
+            overflow: 'hidden',
+            boxShadow: 'var(--shadow-card)',
           }"
         >
-          <HeartDoodle :size="30" />
-          <span
+          <img
+            :src="heroPhotoUrl"
+            alt="Гордей и Елизавета в детстве"
             :style="{
-              fontFamily: 'var(--font-script)',
-              color: 'var(--text-romantic)',
-              fontSize: 'clamp(1.05rem, 3vw, 1.4rem)',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              display: 'block',
             }"
-            >здесь будет ваше фото</span
-          >
+          />
         </div>
       </div>
 
@@ -876,7 +891,8 @@ const sectionTitleStyle: CSSProperties = {
               margin: '0 0 18px',
             }"
           >
-            Пожалуйста, подтвердите своё присутствие до 15 июля 2026
+            Пожалуйста, подтвердите своё присутствие до
+            <span class="deadline-date">15&nbsp;июля</span> 2026
           </p>
 
           <!-- name -->
@@ -962,11 +978,7 @@ const sectionTitleStyle: CSSProperties = {
             </label>
           </template>
 
-          <AppButton
-            :full="true"
-            :disabled="sending || !coming || deadlinePassed"
-            @click="submit"
-          >
+          <AppButton :full="true" :disabled="sending || deadlinePassed" @click="submit">
             <span class="submit-content">
               <template v-if="sending">Отправляем…</template>
               <template v-else-if="!coming">(･_･?)</template>
@@ -975,6 +987,7 @@ const sectionTitleStyle: CSSProperties = {
               >
             </span>
           </AppButton>
+          <p v-if="formHint" class="rsvp-hint">{{ formHint }}</p>
           <p v-if="deadlinePassed" class="rsvp-error">
             Приём анкет завершён 15 июля. Если планы изменились — напишите
             ведущему:&nbsp;+7&nbsp;(923)&nbsp;502&nbsp;20&nbsp;70.
@@ -1075,34 +1088,23 @@ const sectionTitleStyle: CSSProperties = {
             aspectRatio: '4 / 5',
             maxHeight: '360px',
             background: 'var(--surface-sunken)',
-            border: '2px dashed var(--accent)',
+            border: '2px solid var(--accent)',
             borderRadius: '10px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
+            overflow: 'hidden',
+            boxShadow: 'var(--shadow-card)',
           }"
         >
-          <HeartDoodle :size="28" />
-          <span
+          <img
+            :src="polaroidPhotoUrl"
+            alt="Гордей и Елизавета"
             :style="{
-              fontFamily: 'var(--font-script)',
-              color: 'var(--text-romantic)',
-              fontSize: 'clamp(1.05rem, 3vw, 1.3rem)',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              display: 'block',
             }"
-            >здесь будет ваше фото</span
-          >
-        </div>
-        <div
-          :style="{
-            position: 'absolute',
-            bottom: 'clamp(10px,3vw,20px)',
-            right: 'clamp(6px,2vw,14px)',
-            transform: 'rotate(10deg)',
-          }"
-        >
-          <AnnotationLabel direction="down-right">мы ждём вас</AnnotationLabel>
+          />
         </div>
       </div>
     </section>
@@ -1553,6 +1555,40 @@ const sectionTitleStyle: CSSProperties = {
   height: 1px;
   overflow: hidden;
   opacity: 0;
+}
+
+/* ---- Deadline date emphasis in the RSVP subtitle ---- */
+.deadline-date {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ---- RSVP validation hint ("плашка": fill the form first) ---- */
+.rsvp-hint {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--accent);
+  text-align: center;
+  margin: 12px auto 0;
+  padding: 10px 14px;
+  background: var(--surface-sunken);
+  border: 1.5px dashed var(--hairline);
+  border-radius: var(--radius-md);
+  animation: hint-pop var(--dur-base) var(--ease-soft);
+}
+@keyframes hint-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ---- RSVP submit error ---- */
