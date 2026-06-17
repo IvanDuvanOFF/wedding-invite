@@ -131,6 +131,9 @@ const failed = ref(false);
 /** Deployed Google Apps Script web-app URL; unset → local-only (dev) behaviour. */
 const RSVP_ENDPOINT = import.meta.env.VITE_RSVP_ENDPOINT;
 
+/** RSVP deadline — submissions close after the end of 15 July 2026. */
+const deadlinePassed = Date.now() > new Date(2026, 6, 15, 23, 59, 59).getTime();
+
 const whereLabels: Record<Where, string> = {
   "": "",
   zags: "ЗАГС",
@@ -140,7 +143,9 @@ const whereLabels: Record<Where, string> = {
 
 const firstName = computed(() => name.value.trim().split(/\s+/)[0] || "друг");
 const comingMsg = computed(() =>
-  coming.value === "no" ? "Будем очень скучать!" : "Ждём вас с нетерпением!",
+  coming.value === "no"
+    ? "Очень жаль… Надеемся, вы ещё передумаете!"
+    : "Ждём вас с нетерпением!",
 );
 
 function chooseYes() {
@@ -158,6 +163,7 @@ function removeCompanion(i: number) {
 
 async function submit() {
   if (sending.value) return;
+  if (deadlinePassed) return; // submissions closed
   if (!name.value.trim() || !coming.value) return; // name + attendance required
   failed.value = false;
 
@@ -236,6 +242,29 @@ const submitEmoji = computed(() => {
   if (coming.value === "yes") return "\\^o^/";
   return "";
 });
+
+/* ----------------------------------------------------------------------------
+   Celebratory fireworks shown on the "Спасибо" card when the guest is coming.
+   Pure-CSS bursts: each burst fans out N sparks in the wedding palette.
+---------------------------------------------------------------------------- */
+const fireworkBursts = [
+  { x: "20%", y: "26%", size: 64, delay: "0s", color: "var(--accent)" },
+  { x: "78%", y: "20%", size: 56, delay: "0.45s", color: "#C88D2A" },
+  { x: "50%", y: "44%", size: 72, delay: "0.9s", color: "#8A9B61" },
+  { x: "30%", y: "62%", size: 52, delay: "1.35s", color: "#6E081F" },
+  { x: "72%", y: "58%", size: 58, delay: "1.8s", color: "var(--accent)" },
+];
+const sparkCount = 14;
+
+function sparkStyle(i: number, burst: (typeof fireworkBursts)[number]): CSSProperties {
+  const angle = (i / sparkCount) * Math.PI * 2;
+  return {
+    "--tx": `${Math.cos(angle) * burst.size}px`,
+    "--ty": `${Math.sin(angle) * burst.size}px`,
+    background: burst.color,
+    animationDelay: burst.delay,
+  } as CSSProperties;
+}
 
 /* ----------------------------------------------------------------------------
    Mobile burger menu — hides on scroll-down, reappears on scroll-up
@@ -578,6 +607,7 @@ const sectionTitleStyle: CSSProperties = {
         :style="{
           position: 'relative',
           width: '100%',
+          height: 'clamp(240px, 46vw, 420px)',
           margin: 'clamp(16px,3vw,22px) auto 0',
           borderRadius: '18px',
           overflow: 'hidden',
@@ -592,7 +622,9 @@ const sectionTitleStyle: CSSProperties = {
           :style="{
             display: 'block',
             width: '100%',
-            height: 'clamp(240px, 46vw, 420px)',
+            /* taller than the frame so OpenStreetMap's bottom attribution bar
+               (cramped on mobile) is clipped by the container's overflow */
+            height: 'calc(100% + 48px)',
             border: 0,
             filter: 'sepia(0.42) saturate(1.18) hue-rotate(-12deg) contrast(0.95) brightness(1.03)',
           }"
@@ -607,6 +639,15 @@ const sectionTitleStyle: CSSProperties = {
           }"
         />
       </div>
+      <!-- attribution kept (clipped from the iframe above), per OSM usage policy -->
+      <p class="map-credit">
+        Карта: ©&nbsp;<a
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noopener noreferrer"
+          >OpenStreetMap</a
+        >
+      </p>
     </section>
 
     <!-- ============ SCHEDULE ============ -->
@@ -921,22 +962,42 @@ const sectionTitleStyle: CSSProperties = {
             </label>
           </template>
 
-          <AppButton :full="true" :disabled="sending" @click="submit">
-            <span class="submit-content"
-              >{{ sending ? "Отправляем…" : "Подтвердить"
-              }}<span v-if="submitEmoji && !sending" class="submit-emoji">{{
-                submitEmoji
-              }}</span></span
-            >
+          <AppButton
+            :full="true"
+            :disabled="sending || !coming || deadlinePassed"
+            @click="submit"
+          >
+            <span class="submit-content">
+              <template v-if="sending">Отправляем…</template>
+              <template v-else-if="!coming">(･_･?)</template>
+              <template v-else
+                >Подтвердить<span class="submit-emoji">{{ submitEmoji }}</span></template
+              >
+            </span>
           </AppButton>
+          <p v-if="deadlinePassed" class="rsvp-error">
+            Приём анкет завершён 15 июля. Если планы изменились — напишите
+            ведущему:&nbsp;+7&nbsp;(923)&nbsp;502&nbsp;20&nbsp;70.
+          </p>
           <p v-if="failed" class="rsvp-error">
             Не получилось отправить анкету. Проверьте интернет и попробуйте ещё раз — или напишите
             ведущему:&nbsp;+7&nbsp;(923)&nbsp;502&nbsp;20&nbsp;70.
           </p>
         </template>
 
-        <div v-else style="text-align: center; padding: 12px 0">
-          <HeartDoodle :filled="true" :size="42" />
+        <div v-else style="position: relative; text-align: center; padding: 12px 0">
+          <div v-if="coming === 'yes'" class="fireworks" aria-hidden="true">
+            <span
+              v-for="(burst, b) in fireworkBursts"
+              :key="b"
+              class="burst"
+              :style="{ left: burst.x, top: burst.y }"
+            >
+              <i v-for="s in sparkCount" :key="s" class="spark" :style="sparkStyle(s - 1, burst)" />
+            </span>
+          </div>
+          <div style="position: relative; z-index: 1">
+            <HeartDoodle :filled="true" :size="42" />
           <h3
             :style="{
               fontFamily: 'var(--font-display)',
@@ -958,6 +1019,7 @@ const sectionTitleStyle: CSSProperties = {
           >
             {{ comingMsg }}
           </p>
+          </div>
         </div>
       </SketchFrame>
     </section>
@@ -1516,6 +1578,65 @@ const sectionTitleStyle: CSSProperties = {
     display: block;
     margin-left: 0;
     margin-top: 2px;
+  }
+}
+
+/* ---- Map attribution caption ---- */
+.map-credit {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  margin: 6px 4px 0;
+}
+.map-credit a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+/* ---- "Спасибо" fireworks (shown when the guest is coming) ---- */
+.fireworks {
+  position: absolute;
+  inset: -12px 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.burst {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.spark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(0, 0) scale(0.4);
+  animation: spark-fly 1.8s var(--ease-soft) infinite;
+}
+@keyframes spark-fly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.4);
+  }
+  12% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fireworks {
+    display: none;
   }
 }
 
