@@ -212,6 +212,9 @@ const hoverCta = ref(false);
 /* ----------------------------------------------------------------------------
    Shared inline styles reused across sections
 ---------------------------------------------------------------------------- */
+/** Public asset URL, base-path aware so it works under GitHub Pages subpaths. */
+const logoUrl = `${import.meta.env.BASE_URL}photos/restaurant-logo.jpg`;
+
 const sectionTitleStyle: CSSProperties = {
   fontFamily: "var(--font-display)",
   fontWeight: 700,
@@ -486,7 +489,7 @@ const sectionTitleStyle: CSSProperties = {
 
       <!-- restaurant logo, framed as an inky stamp on paper -->
       <div class="venue-logo">
-        <img src="/photos/restaurant-logo.jpg" alt="Paradise Halls Restaurant Club" />
+        <img :src="logoUrl" alt="Paradise Halls Restaurant Club" />
       </div>
       <p
         :style="{

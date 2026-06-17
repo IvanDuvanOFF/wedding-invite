@@ -82,6 +82,18 @@ when `coming === 'yes'`. Schedule rows are clickable → scroll to form +
 pre-select venue. **Submission is local only** — it just flips to a thank-you
 screen; nothing is sent anywhere yet (see TODO.md).
 
+## Deployment
+
+`.github/workflows/deploy.yml` builds and publishes to **GitHub Pages on every
+push to `master`** (build + deploy jobs using the official Pages actions).
+
+GitHub Pages serves a project site from `/<repo>/`, so the CI sets
+`BASE_PATH=/<repo>/` and `vite.config.ts` reads it into Vite's `base` (defaults
+to `/` locally). **Any reference to a `public/` asset must be base-aware** — use
+`` `${import.meta.env.BASE_URL}photos/…` `` (see `logoUrl` in App.vue), never a
+hardcoded `/photos/…`, or it 404s under the Pages subpath. Requires Pages to be
+enabled with **Source: GitHub Actions** in the repo settings.
+
 ## Verifying
 
 Use the Claude Preview tools (`.claude/launch.json` defines the `wedding-invite`
