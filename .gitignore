@@ -1,0 +1,19 @@
+/.idea/
+/wedding-invite.iml
+
+# dependencies & build output
+/node_modules/
+/dist/
+*.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# editor/OS
+.DS_Store
+*.tsbuildinfo
+/design-handoff/
+/.claude/

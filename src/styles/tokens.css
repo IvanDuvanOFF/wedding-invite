@@ -1,0 +1,104 @@
+/* ===========================================================================
+   Гордей & Елизавета — Wedding Design System — tokens
+   Reconstructed from the Claude Design handoff (guideline cards + readme).
+   One warm voice: terracotta brush ink on cream paper, forest green only for
+   the sticky RSVP bar.
+   =========================================================================== */
+
+:root {
+  /* ---- Palette: terracotta (the brand ink) ---- */
+  --rust-500: #c24428;
+  --rust-600: #b23a22; /* primary */
+  --rust-700: #9a2f1a;
+  --rust-800: #7e2614;
+
+  /* ---- Palette: paper neutrals ---- */
+  --paper-50: #fbf9f4; /* card */
+  --paper-100: #f5f1e9; /* page */
+  --paper-200: #ece6da; /* sunken */
+
+  /* ---- Palette: forest green ---- */
+  --forest-700: #36473a;
+  --forest-800: #2f3f32;
+  --forest-900: #2a3a2e; /* footer */
+
+  /* ---- Palette: dress-code extras ---- */
+  --black: #1a1714;
+  --taupe-400: #a89a86;
+  --white: #ffffff;
+
+  /* ---- Semantic colour ---- */
+  --accent: var(--rust-600);
+  --accent-hover: var(--rust-500);
+  --accent-press: var(--rust-700);
+  --on-accent: #fbf9f4;
+
+  --bg-page: var(--paper-100);
+  --surface-sunken: var(--paper-200);
+  --mat: var(--paper-50);
+
+  --ink: #3d2e24; /* dark warm input text */
+  --text-heading: var(--rust-700);
+  --text-romantic: var(--rust-600);
+  --text-body: #4a3b30;
+  --text-muted: #8a7b6d;
+
+  --hairline: rgba(178, 58, 34, 0.16);
+
+  --footer-bg: var(--forest-900);
+  --on-footer: #fbf9f4;
+  --footer-h: 56px;
+
+  /* ---- Paper grain: very subtle warm fractal noise ---- */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.698  0 0 0 0 0.227  0 0 0 0 0.133  0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+
+  /* ---- Typography ---- */
+  --font-display: "Caveat", "Comic Sans MS", cursive;
+  --font-script: "Marck Script", "Caveat", cursive;
+  --font-body: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --fs-display-xl: 3.4rem;
+  --fs-display-lg: 2.6rem;
+  --fs-display-md: 2rem;
+  --fs-script: 1.2rem;
+  --fs-body-lg: 18px;
+  --fs-body: 16px;
+  --fs-eyebrow: 11px;
+
+  /* ---- Radius ---- */
+  --radius-photo: 2px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* ---- Shadows: warm, low, paper-on-paper ---- */
+  --shadow-sm: 0 1px 3px rgba(58, 40, 30, 0.1);
+  --shadow-card: 0 6px 18px rgba(58, 40, 30, 0.1);
+  --shadow-photo: 0 10px 24px rgba(58, 40, 30, 0.18);
+  --shadow-cta: 0 8px 20px rgba(178, 58, 34, 0.3);
+
+  /* ---- Motion ---- */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur-base: 240ms;
+}
+
+/* ---- Base ---- */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
