@@ -123,7 +123,20 @@ const coming = ref<"yes" | "no" | null>(null);
 const where = ref<Where>("");
 const companions = ref<string[]>([]);
 const drinks = ref("");
+const honeypot = ref(""); // spam trap — real guests never see/fill this
 const sent = ref(false);
+const sending = ref(false);
+const failed = ref(false);
+
+/** Deployed Google Apps Script web-app URL; unset → local-only (dev) behaviour. */
+const RSVP_ENDPOINT = import.meta.env.VITE_RSVP_ENDPOINT;
+
+const whereLabels: Record<Where, string> = {
+  "": "",
+  zags: "ЗАГС",
+  banquet: "Банкет",
+  both: "ЗАГС и банкет",
+};
 
 const firstName = computed(() => name.value.trim().split(/\s+/)[0] || "друг");
 const comingMsg = computed(() =>
@@ -142,8 +155,52 @@ function addCompanion() {
 function removeCompanion(i: number) {
   companions.value.splice(i, 1);
 }
-function submit() {
-  if (name.value.trim() && coming.value) sent.value = true;
+
+async function submit() {
+  if (sending.value) return;
+  if (!name.value.trim() || !coming.value) return; // name + attendance required
+  failed.value = false;
+
+  // honeypot filled → silently accept, send nothing (it's a bot)
+  if (honeypot.value) {
+    sent.value = true;
+    return;
+  }
+
+  const isYes = coming.value === "yes";
+  const payload = {
+    name: name.value.trim(),
+    coming: isYes ? "Придёт" : "Не придёт",
+    where: isYes ? whereLabels[where.value] : "",
+    companions: isYes ? companions.value.map((c) => c.trim()).filter(Boolean) : [],
+    drinks: isYes ? drinks.value.trim() : "",
+    submittedAt: new Date().toISOString(),
+  };
+
+  // No backend configured (e.g. local dev) → keep the local-only behaviour.
+  if (!RSVP_ENDPOINT) {
+    sent.value = true;
+    return;
+  }
+
+  sending.value = true;
+  try {
+    // Apps Script web apps don't return CORS headers, so we send a no-cors
+    // "simple" request (text/plain avoids a preflight). The response is opaque,
+    // so a resolved fetch is treated as delivered; only network errors reject.
+    await fetch(RSVP_ENDPOINT, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+    sent.value = true;
+  } catch (err) {
+    console.error("RSVP submit failed:", err);
+    failed.value = true;
+  } finally {
+    sending.value = false;
+  }
 }
 
 function scrollToForm(target?: Exclude<Where, "" | "both">) {
@@ -787,6 +844,16 @@ const sectionTitleStyle: CSSProperties = {
             <input v-model="name" placeholder="Имя и фамилия" class="field-input" />
           </label>
 
+          <!-- honeypot: hidden from real guests, catches bots -->
+          <input
+            v-model="honeypot"
+            class="hp-field"
+            type="text"
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
+          />
+
           <!-- coming? -->
           <span class="field-label" style="margin-bottom: 6px">Придёте?</span>
           <div style="display: flex; gap: 10px; margin-bottom: 20px">
@@ -854,11 +921,18 @@ const sectionTitleStyle: CSSProperties = {
             </label>
           </template>
 
-          <AppButton :full="true" @click="submit">
+          <AppButton :full="true" :disabled="sending" @click="submit">
             <span class="submit-content"
-              >Подтвердить<span v-if="submitEmoji" class="submit-emoji">{{ submitEmoji }}</span></span
+              >{{ sending ? "Отправляем…" : "Подтвердить"
+              }}<span v-if="submitEmoji && !sending" class="submit-emoji">{{
+                submitEmoji
+              }}</span></span
             >
           </AppButton>
+          <p v-if="failed" class="rsvp-error">
+            Не получилось отправить анкету. Проверьте интернет и попробуйте ещё раз — или напишите
+            ведущему:&nbsp;+7&nbsp;(923)&nbsp;502&nbsp;20&nbsp;70.
+          </p>
         </template>
 
         <div v-else style="text-align: center; padding: 12px 0">
@@ -1407,6 +1481,26 @@ const sectionTitleStyle: CSSProperties = {
 }
 .companion-remove:hover {
   color: var(--accent);
+}
+
+/* ---- Honeypot: visually removed, off the tab order ---- */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* ---- RSVP submit error ---- */
+.rsvp-error {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--accent);
+  text-align: center;
+  margin: 12px 2px 0;
 }
 
 /* ---- Submit button label: emoji wraps to its own line on mobile ---- */

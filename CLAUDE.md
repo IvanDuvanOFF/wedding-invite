@@ -77,10 +77,18 @@ for type-only imports.
 ## RSVP form (state in App.vue)
 
 `name`, `coming` (`yes`/`no`/`null`), `where` (zags/banquet/both), `companions`
-(string[] via "Добавить спутника"), `drinks` (optional). Extra fields show only
-when `coming === 'yes'`. Schedule rows are clickable → scroll to form +
-pre-select venue. **Submission is local only** — it just flips to a thank-you
-screen; nothing is sent anywhere yet (see TODO.md).
+(string[] via "Добавить спутника"), `drinks` (optional), plus a hidden
+`honeypot` spam trap. Extra fields show only when `coming === 'yes'`. Schedule
+rows are clickable → scroll to form + pre-select venue.
+
+`submit()` POSTs the payload to a **Google Apps Script web app** at
+`import.meta.env.VITE_RSVP_ENDPOINT` (server source + setup in
+`server/apps-script/`). It's a `no-cors` request (Apps Script sends no CORS
+headers), so the response is opaque — success is optimistic, only network
+errors flip `failed`. States: `sending` / `sent` / `failed`. **If
+`VITE_RSVP_ENDPOINT` is unset (e.g. local dev), it falls back to the old
+local-only behaviour** (just shows the thank-you screen). The endpoint URL is
+set via repo Actions Variable for CI and `.env.local` locally.
 
 ## Deployment
 

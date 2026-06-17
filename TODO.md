@@ -12,13 +12,17 @@ Open items for the Гордей & Елизавета wedding invite. Checked = d
       `public/photos/` — drop them into `PolaroidPhoto` (or the placeholder
       boxes) when the couple picks final images.
 
-## Needs a product decision
+## RSVP backend — code done, needs one-time setup
 
-- [ ] **RSVP submission.** The form is currently local-only — submitting just
-      shows the thank-you screen; `name` / `coming` / `where` / `companions` /
-      `drinks` are not persisted or sent. Decide on a target and wire it up:
-      backend endpoint, Google Sheet, or a Telegram bot. Add basic
-      success/error handling once chosen.
+- [x] **RSVP submission wired up.** `submit()` POSTs `name` / `coming` / `where`
+      / `companions` / `drinks` to a Google Apps Script web app
+      (`VITE_RSVP_ENDPOINT`), with sending/error states + a honeypot. Falls back
+      to local-only when the env var is unset. Code: `server/apps-script/`.
+- [ ] **Deploy the Apps Script + set the URL.** Follow
+      `server/apps-script/README.md`: create the Sheet + bot, add Script
+      Properties (`TELEGRAM_TOKEN`, `TELEGRAM_CHAT`), deploy the web app, then
+      set the `/exec` URL as repo Actions Variable `VITE_RSVP_ENDPOINT` (and in
+      `.env.local` for local testing).
 - [ ] **RSVP validation feedback.** `submit()` silently no-ops if name or
       attendance is missing. Consider inline validation hints.
 

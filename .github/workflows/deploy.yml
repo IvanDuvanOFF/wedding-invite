@@ -34,8 +34,11 @@ jobs:
 
       - name: Build
         # Serve from /<repo>/ so asset and base paths resolve on Pages.
+        # VITE_RSVP_ENDPOINT comes from a repo Actions Variable (optional —
+        # unset keeps the form local-only). See server/apps-script/README.md.
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_RSVP_ENDPOINT: ${{ vars.VITE_RSVP_ENDPOINT }}
         run: npm run build
 
       - name: Upload Pages artifact
