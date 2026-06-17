@@ -90,6 +90,13 @@ errors flip `failed`. States: `sending` / `sent` / `failed`. **If
 local-only behaviour** (just shows the thank-you screen). The endpoint URL is
 set via repo Actions Variable for CI and `.env.local` locally.
 
+**Status (as of setup):** the Apps Script project (`wedding-list`) is deployed
+as a web app and authorized (Sheets + external-service scopes); the Telegram bot
+lives in a group, with `TELEGRAM_TOKEN` / `TELEGRAM_CHAT` in Script Properties.
+The remaining connection is the `VITE_RSVP_ENDPOINT` repo Actions Variable —
+production posts to the live backend only once that's set (verify in repo
+Settings → Secrets and variables → Actions → Variables, then re-run the deploy).
+
 ## Deployment
 
 `.github/workflows/deploy.yml` builds and publishes to **GitHub Pages on every
