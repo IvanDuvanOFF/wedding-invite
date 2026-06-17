@@ -136,9 +136,11 @@ const formHint = computed(() => {
   if (!attempted.value) return "";
   const noName = !name.value.trim();
   const noChoice = !coming.value;
+  const noWhere = coming.value === "yes" && !where.value;
   if (noName && noChoice) return "Укажите имя и выберите: придёте или нет.";
   if (noChoice) return "Пожалуйста, выберите: придёте или нет.";
   if (noName) return "Пожалуйста, укажите своё имя.";
+  if (noWhere) return "Пожалуйста, выберите, куда вы придёте.";
   return "";
 });
 
@@ -179,7 +181,9 @@ async function submit() {
   if (sending.value) return;
   if (deadlinePassed) return; // submissions closed
   attempted.value = true;
+  // name + attendance required; if coming, a venue choice is required too
   if (!name.value.trim() || !coming.value) return; // show inline hint instead
+  if (coming.value === "yes" && !where.value) return; // must pick a venue
   failed.value = false;
 
   // honeypot filled → silently accept, send nothing (it's a bot)
