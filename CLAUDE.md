@@ -35,14 +35,16 @@ for type-only imports.
   from the handoff's guideline cards (the original `tokens/*.css` were not in the
   bundle). Change brand values here, not in components.
 - `src/App.vue` — the entire page. All sections live here (nav, hero, greeting,
-  when, where, schedule, dress-code/palette, countdown, contacts, RSVP, closing,
-  sticky CTA). Section layout is **inline styles** copied faithfully from the
+  when, where, schedule, dress-code/palette, countdown, guest-chat (VK), host
+  contacts, RSVP, closing, sticky CTA). Section layout is **inline styles** copied faithfully from the
   design; **scoped `<style>`** is used only where inline can't reach: media
   queries (responsive), `:hover`, pseudo-elements, transitions.
 - `src/components/*.vue` — the design-system primitives, ported 1:1 from the
   handoff's React components:
   `AppButton`, `BottomBar`, `RibbonTitle`, `PolaroidPhoto`, `SketchFrame`,
-  `HeartDoodle`, `AnnotationLabel`, `CountdownUnit`, `MonthCalendar`.
+  `HeartDoodle`, `AnnotationLabel`, `CountdownUnit`, `MonthCalendar`, plus
+  `VkLogo` (single-colour VK monogram via `currentColor`, styled as terracotta
+  ink — used for the contacts link + the guest-chat button).
   (`BottomBar`, `PolaroidPhoto`, `CountdownUnit` exist as library components but
   the page currently inlines those patterns; keep them valid — `vue-tsc -b`
   type-checks all `.vue` files.)
@@ -84,6 +86,15 @@ for type-only imports.
   fixed-height `overflow: hidden` frame. The required credit is preserved as the
   `.map-credit` caption below it, so don't "fix" the clip by shrinking the
   iframe.
+
+## Contacts & guest chat (VK, not Telegram)
+
+The site links out to **VK** only (the host doesn't use Telegram). Two consts in
+App.vue hold the URLs: `vkPageUrl` (host's page, the contacts-section icon) and
+`vkChatUrl` (the `vk.me/join/…` guest-chat invite behind the "Чат гостей" card's
+"Вступить" button, which calls `openVkChat`). The VK mark is `VkLogo.vue` in
+terracotta ink (`.vk-link` for the contacts icon). The Telegram bot in the RSVP
+backend is unrelated — that's a server-side notification, not a user-facing link.
 
 ## RSVP form (state in App.vue)
 

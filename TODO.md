@@ -4,9 +4,12 @@ Open items for the Гордей & Елизавета wedding invite. Checked = d
 
 ## Blocked on info from the couple
 
-- [ ] **Telegram link for the host.** The contacts paper-plane icon currently
-      links to `https://t.me/` as a placeholder (App.vue, `.tg-link`). Swap in
-      the host's real username (`https://t.me/<username>`) once provided.
+- [x] **Contacts now use VK (not Telegram).** The contacts icon is the VK
+      monogram (`VkLogo.vue`, `.vk-link`) linking to the host's page
+      (`vkPageUrl` = `https://vk.ru/i_andreev_tut`). A "Чат гостей" card sits
+      just above the host contacts with a "Вступить" button opening the guest
+      chat (`vkChatUrl` = `https://vk.me/join/…`). Both links live as consts in
+      App.vue — swap there if they change.
 - [x] **Photos.** Hero shows `public/photos/child-photo.png` (childhood photo,
       1:1 frame, `object-fit: cover`); the closing section shows
       `public/photos/polaroid-photo.jpg` (4/5 frame). Placeholder boxes removed.

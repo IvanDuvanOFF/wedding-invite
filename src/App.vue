@@ -7,6 +7,7 @@ import RibbonTitle from "./components/RibbonTitle.vue";
 import MonthCalendar from "./components/MonthCalendar.vue";
 import SketchFrame from "./components/SketchFrame.vue";
 import AppButton from "./components/AppButton.vue";
+import VkLogo from "./components/VkLogo.vue";
 
 /* ----------------------------------------------------------------------------
    "У НАС СВАДЬБА" garland — letter-cards hung on a sagging rope that threads
@@ -59,12 +60,12 @@ const schedule: { time: string; text: string; where: Exclude<Where, "" | "both">
 const palette: { name: string; hex: string; light?: boolean }[] = [
   { name: "Тёмно-синий", hex: "#17212E" },
   { name: "Бордовый", hex: "#6E081F" },
-  { name: "Какао", hex: "#732B2E" },
+  { name: "Тёмный шоколад", hex: "#2A1C13" },
   { name: "Горчичный", hex: "#C88D2A" },
   { name: "Пыльная роза", hex: "#C2A2A6", light: true },
   { name: "Оливковый", hex: "#8A9B61" },
   { name: "Пудрово-голубой", hex: "#C5D5D6", light: true },
-  { name: "Слоновая кость", hex: "#F4EEE3", light: true },
+  { name: "Винный", hex: "#4A1330" },
 ];
 
 /* ----------------------------------------------------------------------------
@@ -321,6 +322,13 @@ const hoverCta = ref(false);
 const logoUrl = `${import.meta.env.BASE_URL}photos/restaurant-logo.jpg`;
 const heroPhotoUrl = `${import.meta.env.BASE_URL}photos/child-photo.png`;
 const polaroidPhotoUrl = `${import.meta.env.BASE_URL}photos/polaroid-photo.jpg`;
+
+/** VK links: the host's page (contacts) and the guest-chat invite. */
+const vkPageUrl = "https://vk.ru/i_andreev_tut";
+const vkChatUrl = "https://vk.me/join/IHKUr3ahSbEY93/1I/JdT751/9HQVXkFcB8=";
+function openVkChat() {
+  window.open(vkChatUrl, "_blank", "noopener");
+}
 
 const sectionTitleStyle: CSSProperties = {
   fontFamily: "var(--font-display)",
@@ -796,6 +804,48 @@ const sectionTitleStyle: CSSProperties = {
       </SketchFrame>
     </section>
 
+    <!-- ============ GUEST CHAT (VK) ============ -->
+    <section
+      :style="{
+        maxWidth: '560px',
+        margin: '0 auto',
+        padding: 'clamp(16px,4vw,28px) clamp(22px,5vw,40px) clamp(6px,2vw,12px)',
+      }"
+    >
+      <SketchFrame :padding="'clamp(26px,6vw,44px)'">
+        <div style="text-align: center">
+          <h2
+            :style="{
+              fontFamily: 'var(--font-script)',
+              fontWeight: 400,
+              color: 'var(--text-heading)',
+              fontSize: 'clamp(2rem, 7vw, 3rem)',
+              lineHeight: 1.1,
+              margin: '0 0 14px',
+            }"
+          >
+            Чат гостей
+          </h2>
+          <p
+            :style="{
+              fontFamily: 'var(--font-body)',
+              color: 'var(--text-muted)',
+              fontSize: 'clamp(1rem, 3vw, 1.15rem)',
+              lineHeight: 1.5,
+              maxWidth: '360px',
+              margin: '0 auto 22px',
+            }"
+          >
+            Предлагаем вступить в чат гостей — здесь можно обмениваться фото и видео со свадьбы.
+          </p>
+          <AppButton variant="outline" size="sm" @click="openVkChat">
+            <VkLogo :size="22" />
+            Вступить
+          </AppButton>
+        </div>
+      </SketchFrame>
+    </section>
+
     <!-- ============ HOST CONTACTS ============ -->
     <section
       :style="{
@@ -843,20 +893,16 @@ const sectionTitleStyle: CSSProperties = {
         >+7 (923) 502 20 70</a
       >
       <div style="margin-top: 14px">
-        <!-- Telegram — placeholder opens Telegram (host username TBD) -->
+        <!-- VK — host's page -->
         <a
-          href="https://t.me/"
+          :href="vkPageUrl"
           target="_blank"
           rel="noopener"
-          aria-label="Написать в Telegram"
-          class="tg-link"
+          aria-label="Страница ВКонтакте"
+          class="vk-link"
+          :style="{ color: 'var(--accent)' }"
         >
-          <svg width="34" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display: block">
-            <path
-              d="M21.5 3.5 2.8 11.1c-.7.3-.7 1.3.1 1.5l5.4 1.6 2 5.6c.3.8 1.3.9 1.7.2l2.6-3.9 5.2 3.8c.6.4 1.4 0 1.5-.7l2-14.6c.1-.8-.7-1.4-1.3-1.1Z"
-              fill="var(--accent)"
-            />
-          </svg>
+          <VkLogo :size="34" />
         </a>
       </div>
     </section>
@@ -1680,12 +1726,12 @@ const sectionTitleStyle: CSSProperties = {
   }
 }
 
-/* ---- Telegram link ---- */
-.tg-link {
+/* ---- VK link ---- */
+.vk-link {
   display: inline-flex;
   transition: transform var(--dur-fast) var(--ease-soft);
 }
-.tg-link:hover {
+.vk-link:hover {
   transform: scale(1.1);
 }
 </style>
